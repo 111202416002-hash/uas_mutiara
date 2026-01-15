@@ -45,22 +45,13 @@ $no = $limit_start + 1;
                                     <h1 class="modal-title fs-5">Edit Article</h1>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
-                                <form method="post" action="admin.php?page=article" enctype="multipart/form-data">
+                                <form method="post" enctype="multipart/form-data">
                                     <div class="modal-body">
                                         <input type="hidden" name="id" value="<?= $row['id'] ?>">
                                         <input type="hidden" name="gambar_lama" value="<?= $row['gambar'] ?>">
-                                        <div class="mb-3">
-                                            <label class="form-label">Judul</label>
-                                            <input type="text" class="form-control" name="judul" value="<?= $row['judul'] ?>" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Isi</label>
-                                            <textarea class="form-control" name="isi" required><?= $row['isi'] ?></textarea>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Ganti Gambar</label>
-                                            <input type="file" class="form-control" name="gambar">
-                                        </div>
+                                        <div class="mb-3"><label class="form-label">Judul</label><input type="text" class="form-control" name="judul" value="<?= $row['judul'] ?>" required></div>
+                                        <div class="mb-3"><label class="form-label">Isi</label><textarea class="form-control" name="isi" required><?= $row['isi'] ?></textarea></div>
+                                        <div class="mb-3"><label class="form-label">Ganti Gambar</label><input type="file" class="form-control" name="gambar"></div>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -74,11 +65,8 @@ $no = $limit_start + 1;
                     <div class="modal fade" id="modalHapus<?= $row['id'] ?>" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="modal-title fs-5">Konfirmasi Hapus</h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <form method="post" action="admin.php?page=article">
+                                <div class="modal-header"><h1 class="modal-title fs-5">Konfirmasi Hapus</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                <form method="post">
                                     <div class="modal-body">
                                         <p>Yakin ingin menghapus data <strong><?= $row['judul'] ?></strong>?</p>
                                         <input type="hidden" name="id" value="<?= $row['id'] ?>">
@@ -92,25 +80,23 @@ $no = $limit_start + 1;
                             </div>
                         </div>
                     </div>
-                    </td>
+                </td>
             </tr>
         <?php } ?>
     </tbody>
 </table>
 
 <?php 
-$sql1 = "SELECT * FROM article";
-$hasil1 = $conn->query($sql1); 
-$total_records = $hasil1->num_rows;
+$total_records = $conn->query("SELECT * FROM article")->num_rows;
 ?>
 <p>Total article : <?= $total_records; ?></p>
-<nav class="mb-2">
+<nav>
     <ul class="pagination justify-content-end">
     <?php
         $jumlah_page = ceil($total_records / $limit);
         for($i = 1; $i <= $jumlah_page; $i++){
-            $link_active = ($hlm == $i)? ' active' : '';
-            echo '<li class="page-item halaman '.$link_active.'" id="'.$i.'"><a class="page-link" href="#">'.$i.'</a></li>';
+            $active = ($hlm == $i)? ' active' : '';
+            echo '<li class="page-item halaman '.$active.'" id="'.$i.'"><a class="page-link" href="#">'.$i.'</a></li>';
         }
     ?>
     </ul>

@@ -1,7 +1,7 @@
 <?php
 include "koneksi.php";
 
-// FUNGSI UPLOAD (Langsung di sini agar tidak error failed to open stream)
+// Fungsi Upload Foto
 function upload_foto($file) {
     $target_dir = "img/";
     $target_file = $target_dir . basename($file["name"]);
@@ -15,70 +15,57 @@ function upload_foto($file) {
     }
 }
 
-// LOGIKA HAPUS ARTICLE
-if (isset($_POST['hapus'])) {
-    $id = $_POST['id'];
-    $gambar = $_POST['gambar'];
-
-    if ($gambar != '' && file_exists("img/" . $gambar)) {
-        unlink("img/" . $gambar);
-    }
-
-    $stmt = $conn->prepare("DELETE FROM article WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    if ($stmt->execute()) {
-        echo "<script>alert('Hapus Berhasil'); document.location='admin.php?page=article';</script>";
-    }
-}
-
-// LOGIKA SIMPAN/UPDATE
+// Logika Simpan/Update
 if (isset($_POST['simpan'])) {
     $judul = $_POST['judul'];
     $isi = $_POST['isi'];
     $tanggal = date("Y-m-d H:i:s");
-    $username = $_SESSION['username']; // Pastikan session sudah start
+    $username = $_SESSION['username'] ?? 'admin'; 
     $nama_gambar = $_FILES['gambar']['name'];
-    $gambar = '';
+    $gambar = $_POST['gambar_lama'] ?? '';
 
     if ($nama_gambar != '') {
         $cek_upload = upload_foto($_FILES["gambar"]);
         if ($cek_upload['status']) {
             $gambar = $cek_upload['message'];
+            if (isset($_POST['id']) && $_POST['gambar_lama'] != '' && file_exists("img/".$_POST['gambar_lama'])) { 
+                unlink("img/" . $_POST['gambar_lama']); 
+            }
         }
     }
 
     if (isset($_POST['id']) && $_POST['id'] != '') {
-        $id = $_POST['id'];
-        if ($nama_gambar == '') {
-            $gambar = $_POST['gambar_lama'];
-        } else {
-            if ($_POST['gambar_lama'] != '' && file_exists("img/".$_POST['gambar_lama'])) { 
-                unlink("img/" . $_POST['gambar_lama']); 
-            }
-        }
         $stmt = $conn->prepare("UPDATE article SET judul=?, isi=?, gambar=?, tanggal=?, username=? WHERE id=?");
-        $stmt->bind_param("sssssi", $judul, $isi, $gambar, $tanggal, $username, $id);
+        $stmt->bind_param("sssssi", $judul, $isi, $gambar, $tanggal, $username, $_POST['id']);
     } else {
         $stmt = $conn->prepare("INSERT INTO article (judul,isi,gambar,tanggal,username) VALUES (?,?,?,?,?)");
         $stmt->bind_param("sssss", $judul, $isi, $gambar, $tanggal, $username);
     }
-    
-    if ($stmt->execute()) {
-        echo "<script>alert('Simpan Berhasil'); document.location='admin.php?page=article';</script>";
-    }
+    if ($stmt->execute()) { echo "<script>document.location='admin.php?page=article';</script>"; }
+}
+
+// Logika Hapus
+if (isset($_POST['hapus'])) {
+    $id = $_POST['id'];
+    $gambar = $_POST['gambar'];
+    if ($gambar != '' && file_exists("img/" . $gambar)) { unlink("img/" . $gambar); }
+    $stmt = $conn->prepare("DELETE FROM article WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    if ($stmt->execute()) { echo "<script>document.location='admin.php?page=article';</script>"; }
 }
 ?>
 
-<div class="container">
-    <button type="button" class="btn btn-secondary mb-2" data-bs-toggle="modal" data-bs-target="#modalTambahArt">
+<div class="container-fluid mt-3">
+    <button type="button" class="btn btn-secondary mb-3" data-bs-toggle="modal" data-bs-target="#modalTambah">
         <i class="bi bi-plus-lg"></i> Tambah Article
     </button>
+    
     <div class="row">
-        <div class="table-responsive" id="article_data"></div>
+        <div id="article_data"></div>
     </div>
 </div>
 
-<div class="modal fade" id="modalTambahArt" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalTambah" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -93,7 +80,7 @@ if (isset($_POST['simpan'])) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Isi</label>
-                        <textarea class="form-control" name="isi" required></textarea>
+                        <textarea class="form-control" name="isi" rows="5" required></textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Gambar</label>
@@ -122,5 +109,9 @@ $(document).ready(function(){
             }
         })
     } 
+    $(document).on('click', '.halaman', function(){
+        var hlm = $(this).attr("id");
+        load_data(hlm);
+    });
 });
 </script>
